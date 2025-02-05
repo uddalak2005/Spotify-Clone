@@ -1,0 +1,119 @@
+/* For Webkit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+    width: 10px; /* Scrollbar width */
+}
+
+::-webkit-scrollbar-track {
+    background: #1f1f1f; /* Dark background */
+    border-radius: 10px; /* Rounded track */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333; /* Dark gray scrollbar */
+    border-radius: 10px; /* Rounded scrollbar */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Slightly lighter on hover */
+}
+
+/* For Firefox */
+* {
+    scrollbar-color: #333 #1f1f1f; /* thumb and track */
+    scrollbar-width: thin; /* Smaller scrollbar */
+}
+
+
+
+body{
+    margin:0;
+    padding:0;
+    background-color:#000;
+    font-family: "Roboto", serif;
+}
+
+.icons{
+    filter: invert(1);
+}
+
+#search:focus {
+    border: none;
+    outline: none;
+    color: white;
+}
+
+.header{
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.middleHeader{
+    display: flex;
+}
+
+.searchBox{
+    display: flex;
+    background: #1f1f1f;
+    padding: 15px;
+    border-radius: 50px;
+    width: 400px;
+    justify-content: space-between;
+
+}
+
+.hero{
+    display: flex;
+    gap:10px;
+    padding: 10px;
+    height: 75vh;
+}
+
+.left{
+    width: 20%;
+    background: #1f1f1f;
+    border-radius: 10px;
+    padding: 10px;
+}
+.right{
+    width: 80%;
+    background: #1f1f1f;
+    border-radius: 10px;
+    padding: 20px;
+    overflow-y: scroll;
+}
+
+.card{
+    padding: 10px;
+    border-radius: 10px;
+    width: 200px;
+    color:white;
+    position: relative;
+}
+
+.card:hover{
+    background: #4e4e4e;
+}
+
+.posterImg{
+    height: 200px;
+    width: 200px;
+}
+
+.playButton{
+    position: absolute;
+    top:130px;
+    right: 10px;
+}
+
+.footer{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background: black;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+}
