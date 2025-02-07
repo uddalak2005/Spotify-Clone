@@ -87,7 +87,7 @@ body{
 .card{
     padding: 10px;
     border-radius: 10px;
-    width: 200px;
+    width: 150px;
     color:white;
     position: relative;
 }
@@ -97,8 +97,8 @@ body{
 }
 
 .posterImg{
-    height: 200px;
-    width: 200px;
+    height: 150px;
+    width: 150px;
 }
 
 .playButton{
@@ -116,4 +116,57 @@ body{
     padding: 15px;
     display: flex;
     justify-content: space-between;
+}
+
+.footerMiddle{
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.songCard{
+    display: flex;
+    padding: 10px;
+    gap:10px;
+    border : 1px solid white;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+}
+
+.list{
+    overflow-y: scroll;
+}
+
+.seekbar{
+    height:4px;
+    width:80%;
+    background-color: white;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+}
+
+.circle{
+    height:10px;
+    width:10px;
+    background-color: greenyellow;
+    position: absolute;
+    top:-2px;
+    left: 0%;
+    border-radius: 50%;
+    transition: left 0.5s;
+    z-index: 20;
+}
+
+.elapsed{
+    height:4px;
+    width:0%;
+    background-color: greenyellow;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    z-index: 10;
 }
