@@ -25,6 +25,13 @@
 
 
 
+.playlists{
+    display: flex;
+    gap:10px;
+    flex-wrap: wrap;
+}
+
+
 body{
     margin:0;
     padding:0;
@@ -169,4 +176,21 @@ body{
     position: relative;
     cursor: pointer;
     z-index: 10;
+}
+
+.footerRight{
+    /* width: 10%; */
+    display: flex;
+    
+    padding:20px;
+    justify-content: center;
+    align-items: center;
+    height: 50%;
+}
+
+.volume{
+    display: flex;
+    align-items: center;
+    gap:20px;
+    padding-right: 10px;
 }

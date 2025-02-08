@@ -1,11 +1,12 @@
-async function getSongs() {
-    let a = await fetch("http://127.0.0.1:5500/songs/")
+async function getSongs(folder) {
+    let a = await fetch(`http://127.0.0.1:5500/songs/${folder}`)
     let response = await a.text();
     let div = document.createElement("div");
     div.innerHTML = response;
     let lis = div.getElementsByTagName("li");
     let songs = [];
     for (let i = 1; i < lis.length; i++) {
+        console.log(lis[i].getElementsByTagName("a")[0].href.split("/").pop());
         songs.push({
             href: lis[i].getElementsByTagName("a")[0].href,
             name: lis[i].innerText.split(".")[0]
@@ -16,9 +17,24 @@ async function getSongs() {
 
 }
 
+
+async function getPlayList() {
+    let a = await fetch("http://127.0.0.1:5500/songs/")
+    let response = await a.text();
+    let div = document.createElement("div");
+    div.innerHTML = response;
+    let lis = div.getElementsByTagName("li");
+    let playlist = [];
+    for (let i = 1; i < lis.length; i++) {
+        playlist.push(lis[i].getElementsByTagName("a")[0].href.split("/").pop());
+
+    }
+    return playlist;
+}
+
 let currentAudio = null;
 
-const playMusic = (track) => {
+const playMusic = (track, folder) => {
     // Pause the previously playing audio if exists
 
     let thumb = document.querySelector(".circle");
@@ -37,7 +53,7 @@ const playMusic = (track) => {
 
     // Create a new audio instance and store it
 
-    currentAudio = new Audio("/songs/" + track + ".m4a");
+    currentAudio = new Audio(`/songs/${folder}/` + track + ".m4a");
     play.src = "./assets/pausePlay.svg";
     // Play the new song
     currentAudio.play();
@@ -94,12 +110,14 @@ const playMusic = (track) => {
 
 };
 
-async function main() {
-    let songs = await getSongs();
-    console.log(songs);
+
+async function enlistSongs(playlist) {
     let list = document.querySelector(".left");
-    songs.forEach((element) => {
-        let listCard = `<div class="list">
+
+    for (const folder of playlist) {  // Use for...of to properly await each folder's songs
+        let songs = await getSongs(folder);  // Ensure folder is properly defined
+        songs.forEach((element) => {
+            let listCard = `<div class="list">
                 <div class="songCard">
                     <div style="display: flex; align-items: center; gap: 10px">
                         <img src="https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/radio/artist/0oOet2f43PA68X5RxKobEy/en"
@@ -108,8 +126,8 @@ async function main() {
                             <p class="title"
                                 style="font-size: 15px; margin: 0px; font-family: Poppins, serif;font-weight: 600; color:white">
                                 ${element.name}</p>
-                            <p class="sub" class="sub"
-                                style=" font-family: Poppins, serif;color: grey; margin: 0px;font-size: 10px">Artist</p>
+                            <p class="sub"
+                                style=" font-family: Poppins, serif;color: grey; margin: 0px;font-size: 10px">${folder}</p>
                         </div>
                     </div>
                     <div style="display: flex; height: 50%; gap:5px">
@@ -117,16 +135,64 @@ async function main() {
                         <img src="./assets/pause.svg" alt="" class="icons">
                     </div>
                 </div>
-            </div>`
-        list.insertAdjacentHTML("beforeend", listCard);
-    })
+            </div>`;
 
-    Array.from(document.querySelectorAll(".songCard")).forEach(e => {
-        console.log(e);
+            list.insertAdjacentHTML("beforeend", listCard);
+        });
+    }
+}
+
+async function enlistPlayList(playlist){
+    let Area = document.querySelector(".playlists");
+    playlist.forEach(e=>{
+        let card = `<div class="card">
+                    <div class="playButton">
+                        <img src="./assets/play.svg" alt="" style="height: 50px">
+                    </div>
+                    <div class="poster">
+                        <img class="posterImg"
+                            src="https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/radio/artist/0oOet2f43PA68X5RxKobEy/en"
+                            alt="">
+                    </div>
+                    <div class="description">
+                        <p class="title"
+                            style="font-size: 24px; margin: 0px; font-family: Poppins, serif;font-weight: 600">Title</p>
+                        <p class="sub" style=" font-family: Poppins, serif;color: grey; margin: 0px;">This is subtitle
+                        </p>
+                    </div>
+                </div>`
+                Area.insertAdjacentHTML("beforeend", card);
+    })
+}
+
+async function main() {
+    let playlist = await getPlayList();
+    console.log(playlist);
+
+    await enlistPlayList(playlist);
+
+
+    await enlistSongs(playlist)
+
+    /*The issue is that event listeners are being attached before the playlist elements are actually added to the DOM when calling enlistSongs(playlist) inside main().
+
+    Why It Works Inside main()
+    When the entire playlist processing is inside main(), elements are added before attaching event listeners.
+
+    Why It Doesn't Work When enlistSongs(playlist) is Separate
+    The function enlistSongs(playlist) runs asynchronously and modifies the DOM.
+    Event listeners are attached immediately after calling enlistSongs(playlist), before the songs are added.
+    This means document.querySelectorAll(".songCard") runs before .songCard elements exist in the DOM.*/
+
+
+    // Attach event listeners after dynamically adding elements
+    document.querySelectorAll(".songCard").forEach(e => {
+        console.log();
         e.addEventListener("click", (event) => {
             let songName = e.getElementsByTagName("p")[0].innerText.trim();
+            let folderName = e.getElementsByTagName("p")[1].innerText.trim()
             console.log(songName);
-            playMusic(songName);
+            playMusic(songName, folderName);
         });
     });
 
@@ -144,6 +210,11 @@ async function main() {
         }
 
     });
+
+
+
+
+
 
 
     let index = 0;  // ✅ Store current song index
@@ -187,6 +258,10 @@ async function main() {
             playMusic(songs[index].name); // ✅ Play the previous song
         }
     });
+
+    document.querySelector(".volume").getElementsByTagName("input")[0].addEventListener("change", (e) => {
+        currentAudio.volume = parseInt(e.target.value) / 100;
+    })
 }
 
 
