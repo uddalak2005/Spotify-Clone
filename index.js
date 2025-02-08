@@ -7,10 +7,13 @@ async function getSongs(folder) {
     let songs = [];
     for (let i = 1; i < lis.length; i++) {
         console.log(lis[i].getElementsByTagName("a")[0].href.split("/").pop());
-        songs.push({
-            href: lis[i].getElementsByTagName("a")[0].href,
-            name: lis[i].innerText.split(".")[0]
-        });
+        if (lis[i].innerText.split(".")[1].startsWith("m4a") || lis[i].innerText.split(".")[1].startsWith("mp3")) {
+            songs.push({
+                href: lis[i].getElementsByTagName("a")[0].href,
+                name: lis[i].innerText.split(".")[0],
+            });
+        }
+
 
     }
     return songs;
@@ -26,9 +29,18 @@ async function getPlayList() {
     let lis = div.getElementsByTagName("li");
     let playlist = [];
     for (let i = 1; i < lis.length; i++) {
-        playlist.push(lis[i].getElementsByTagName("a")[0].href.split("/").pop());
+        let location = lis[i].getElementsByTagName("a")[0].href.split("/").pop()
+        let info = await fetch("http://127.0.0.1:5500/songs/" + location + "/info.json");
+        let res = await info.json();
+        console.log(res);
+        playlist.push({
+            loc: location,
+            title: res.title,
+            desc: res.description
+        });
 
     }
+    console.log(playlist);
     return playlist;
 }
 
@@ -81,7 +93,8 @@ const playMusic = (track, folder) => {
     });
 
     document.querySelector(".seekbar").addEventListener("click", (e) => {
-        let offsetPercent = (e.offsetX / e.target.getBoundingClientRect().width) * 100;
+        let offsetPercent = (e.offsetX / e.currentTarget.getBoundingClientRect().width) * 100;
+        console.log(e.offsetX , e.currentTarget.getBoundingClientRect().width)
         document.querySelector(".circle").style.left = offsetPercent + "%";
         document.querySelector(".elapsed").style.width = offsetPercent + "%"
         currentAudio.currentTime = (offsetPercent * currentAudio.duration) / 100;
@@ -111,40 +124,50 @@ const playMusic = (track, folder) => {
 };
 
 
-async function enlistSongs(playlist) {
-    let list = document.querySelector(".left");
+async function enlistSongs(loc) {
+    let list = document.querySelector(".list");
+    list.innerHTML = "";
 
-    for (const folder of playlist) {  // Use for...of to properly await each folder's songs
-        let songs = await getSongs(folder);  // Ensure folder is properly defined
-        songs.forEach((element) => {
-            let listCard = `<div class="list">
-                <div class="songCard">
+    let songs = await getSongs(loc);  // Ensure folder is properly defined
+    songs.forEach((element) => {
+
+        let listCard = `<div class="songCard">
                     <div style="display: flex; align-items: center; gap: 10px">
                         <img src="https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/radio/artist/0oOet2f43PA68X5RxKobEy/en"
                             alt="" style="height: 40px; width: 40px">
                         <div>
                             <p class="title"
-                                style="font-size: 15px; margin: 0px; font-family: Poppins, serif;font-weight: 600; color:white">
+                                style="font-size: 10px; margin: 0px; font-family: Poppins, serif;font-weight: 600; color:white">
                                 ${element.name}</p>
-                            <p class="sub"
-                                style=" font-family: Poppins, serif;color: grey; margin: 0px;font-size: 10px">${folder}</p>
+                            <p class="sub" class="sub"
+                                style=" font-family: Poppins, serif;color: grey; margin: 0px;font-size: 6px">${decodeURIComponent(loc)}</p>
                         </div>
                     </div>
-                    <div style="display: flex; height: 50%; gap:5px">
+                    <div style="display: flex; height: 30%; gap:5px; align-items: center">
                         <p class="title" style="color: white; font-family: Poppins, serif; font-weight: 600; font-size: smaller;">Play</p>
                         <img src="./assets/pause.svg" alt="" class="icons">
                     </div>
-                </div>
-            </div>`;
+                </div>`
 
-            list.insertAdjacentHTML("beforeend", listCard);
+        list.insertAdjacentHTML("beforeend", listCard);
+    });
+
+    document.querySelectorAll(".songCard").forEach(e => {
+        console.log();
+        e.addEventListener("click", (event) => {
+            console.log("song clicked");
+            let songName = e.getElementsByTagName("p")[0].innerText.trim();
+            let folderName = e.getElementsByTagName("p")[1].innerText.trim()
+            console.log(songName);
+            console.log(folderName);
+            playMusic(songName, folderName);
         });
-    }
+    });
 }
 
-async function enlistPlayList(playlist){
+async function enlistPlayList(playlist) {
     let Area = document.querySelector(".playlists");
-    playlist.forEach(e=>{
+    playlist.forEach(e => {
         let card = `<div class="card">
                     <div class="playButton">
                         <img src="./assets/play.svg" alt="" style="height: 50px">
@@ -155,24 +178,25 @@ async function enlistPlayList(playlist){
                             alt="">
                     </div>
                     <div class="description">
+                        <p style="display:none">${e.loc}</p>
                         <p class="title"
-                            style="font-size: 24px; margin: 0px; font-family: Poppins, serif;font-weight: 600">Title</p>
-                        <p class="sub" style=" font-family: Poppins, serif;color: grey; margin: 0px;">This is subtitle
+                            style="font-size: 18px; margin: 0px; font-family: Poppins, serif;font-weight: 600">${e.title}</p>
+                        <p class="sub" style=" font-family: Poppins, serif;color: grey; margin: 0px;">${e.desc}
                         </p>
                     </div>
                 </div>`
-                Area.insertAdjacentHTML("beforeend", card);
+        Area.insertAdjacentHTML("beforeend", card);
     })
 }
 
 async function main() {
     let playlist = await getPlayList();
-    console.log(playlist);
+    console.log(playlist[0].loc);
 
     await enlistPlayList(playlist);
 
 
-    await enlistSongs(playlist)
+
 
     /*The issue is that event listeners are being attached before the playlist elements are actually added to the DOM when calling enlistSongs(playlist) inside main().
 
@@ -186,15 +210,16 @@ async function main() {
 
 
     // Attach event listeners after dynamically adding elements
-    document.querySelectorAll(".songCard").forEach(e => {
-        console.log();
-        e.addEventListener("click", (event) => {
-            let songName = e.getElementsByTagName("p")[0].innerText.trim();
-            let folderName = e.getElementsByTagName("p")[1].innerText.trim()
-            console.log(songName);
-            playMusic(songName, folderName);
-        });
-    });
+
+
+    Array.from(document.getElementsByClassName("card")).forEach((card) => {
+        card.addEventListener("click", (event) => {
+            console.log("card clicked");
+            let loc = event.currentTarget.querySelector(".description").getElementsByTagName("p")[0].innerText;
+            console.log(loc);
+            enlistSongs(loc);
+        })
+    })
 
     let play = document.getElementById("playPause");
     play.addEventListener("click", (event) => {
